@@ -1,20 +1,33 @@
 
+import streamlit as st
 from pytrends.request import TrendReq
 import pandas as pd
-import streamlit as st
+import matplotlib.pyplot as plt
 
-# إعداد pytrends
-pytrends = TrendReq(hl='en-US', tz=360)
+st.set_page_config(page_title="Google Trends Live Monitor", layout="wide")
 
-# كلمات نتابعها
-keywords = ["AI", "Bitcoin", "Python"]
+# إدخال الكلمات من المستخدم
+custom_words = st.text_input("📝 أدخل كلمات ترند (مفصولة بفاصلة):", value="AI,Python,Bitcoin")
+keywords = [word.strip() for word in custom_words.split(",")]
 
-# تحميل البيانات
-pytrends.build_payload(keywords, timeframe='now 1-d')
-data = pytrends.interest_over_time()
+# عرض الكلمات في الشريط الجانبي
+with st.sidebar:
+    st.markdown("### الكلمات المرصودة:")
+    for word in keywords:
+        st.write(f"🔹 {word}")
 
-# عرض في Streamlit
-st.set_page_config(page_title="Google Trends", layout="wide")
-st.title("📈 Google Trends Live Monitor")
-st.write("Trending Data for the last 24 hours:")
-st.line_chart(data[keywords])
+# تحميل البيانات من Google Trends
+pytrends = TrendReq()
+pytrends.build_payload(keywords, cat=0, timeframe='now 1-d', geo='', gprop='')
+df = pytrends.interest_over_time()
+
+# عرض العنوان
+st.markdown("# 📈 Google Trends Live Monitor")
+st.markdown("### Trending Data for the last 24 hours:")
+
+# عرض البيانات البيانية
+fig, ax = plt.subplots()
+df[keywords].plot(ax=ax, figsize=(14, 6))
+plt.legend(loc='upper left')
+plt.tight_layout()
+st.pyplot(fig)
