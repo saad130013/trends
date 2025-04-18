@@ -1,27 +1,35 @@
 
+import streamlit as st
 from pytrends.request import TrendReq
 import pandas as pd
 
-# إعداد الاتصال
-pytrends = TrendReq(hl='en-US', tz=360)
+st.set_page_config(page_title="Google Trends Explorer", layout="wide")
 
-# الكلمات المفتاحية المهمة (تقدر تغيرها)
-keywords = ['AI', 'Bitcoin', 'ChatGPT', 'Saudi Arabia', 'Apple']
+st.title("🌍 ترندات Google حسب الدولة")
 
-# بناء الطلب
-pytrends.build_payload(keywords, timeframe='now 1-d', geo='')
+# قائمة بالدول المدعومة من pytrends
+countries = {
+    "السعودية 🇸🇦": "saudi_arabia",
+    "الولايات المتحدة 🇺🇸": "united_states",
+    "اليابان 🇯🇵": "japan",
+    "ألمانيا 🇩🇪": "germany",
+    "كوريا الجنوبية 🇰🇷": "south_korea",
+    "مصر 🇪🇬": "egypt",
+    "المملكة المتحدة 🇬🇧": "united_kingdom",
+    "فرنسا 🇫🇷": "france",
+    "تركيا 🇹🇷": "turkey"
+}
 
-# جلب بيانات الترند خلال آخر 24 ساعة
-df = pytrends.interest_over_time()
+selected_country = st.selectbox("اختر الدولة", list(countries.keys()))
+country_code = countries[selected_country]
 
-# التحقق من وجود بيانات
-if not df.empty:
-    # حذف عمود isPartial إذا موجود
-    if 'isPartial' in df.columns:
-        df = df.drop(columns=['isPartial'])
+try:
+    pytrends = TrendReq()
+    trending_df = pytrends.trending_searches(pn=country_code)
 
-    # حفظ النتائج في ملف CSV
-    df.to_csv('daily_global_trends.csv')
-    print("✅ تم حفظ الترندات في: daily_global_trends.csv")
-else:
-    print("❌ لم يتم العثور على بيانات، جرّب كلمات مفتاحية أخرى.")
+    st.success(f"عرض الترندات في {selected_country}")
+    st.dataframe(trending_df.head(10))
+
+except Exception as e:
+    st.error("حدث خطأ أثناء جلب البيانات. حاول لاحقًا.")
+    st.exception(e)
