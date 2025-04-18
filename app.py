@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import requests
@@ -8,8 +7,10 @@ st.set_page_config(page_title="منتجات الأكثر مبيعًا", layout="
 st.title("📦 المنتجات الأكثر مبيعًا")
 st.markdown("### عرض مباشر للمنتجات الأكثر مبيعًا على Amazon")
 
+# اختيار الدولة
 country = st.selectbox("اختر الدولة:", ["السعودية", "أمريكا"])
 
+# روابط Amazon
 amazon_urls = {
     "السعودية": "https://www.amazon.sa/gp/bestsellers",
     "أمريكا": "https://www.amazon.com/Best-Sellers/zgbs"
@@ -35,9 +36,11 @@ def fetch_best_sellers(url):
         data.append({"المنتج": title_text, "الصورة": img_url})
     return pd.DataFrame(data)
 
+# تحميل البيانات
 with st.spinner("جاري تحميل الترندات..."):
     df = fetch_best_sellers(url)
 
+# عرض البيانات
 if not df.empty:
     for i, row in df.iterrows():
         st.image(row["الصورة"], width=120)
